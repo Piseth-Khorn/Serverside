@@ -26,9 +26,6 @@ app.get('/users/add', (req, res, next) => {
 app.use('/user', userone);
 //app.use('/upload', fileUpload);
 app.use('/uploads', express.static('uploads'));
-
-
-
 app.listen(9000, function () {
     console.log('Server started')
 });

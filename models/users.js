@@ -3,29 +3,36 @@ const userSchema = new mongoose.Schema({
 
     firstName: {
         type: String,
+        min: 2,
         required: true,
 
     },
     lastName: {
         type: String,
+        min: 2,
         required: true,
 
     },
     email: {
         type: String,
         required: true,
+        min: 6
 
     },
     password: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        max: 255,
+        min: 8
 
     },
     confirmPassword: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        min: 8,
+        max: 255
 
     },
     role: {
@@ -35,6 +42,8 @@ const userSchema = new mongoose.Schema({
     phoneNumber: {
         type: String,
         required: true,
+        min: 10,
+        max: 14,
 
     },
     gender: {
@@ -50,11 +59,13 @@ const userSchema = new mongoose.Schema({
     address1: {
         type: String,
         required: true,
+        max: 255
 
     },
     address2: {
         type: String,
         required: true,
+        max: 255
 
     },
     city: {
