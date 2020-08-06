@@ -49,7 +49,6 @@ const schema = Joi.object({
 router.get('/', async (req, res) => {
     try {
         const user = await users.find();
-        // console.log('server side');
         res.json(user);
     } catch (error) {
         res.send('Something went wrong' + error);
@@ -88,9 +87,9 @@ router.post('/create', upload.single('file'), async (req, res) => {
         file: (req.file) ? req.file.path : null
     });
     res.send(validation);
-    console.log(userData)
+    //console.log(userData)
     try {
-        // const user = await userData.save();
+        const user = await userData.save();
         res.json(user);
     } catch (error) {
         res.status(400).send(error);
