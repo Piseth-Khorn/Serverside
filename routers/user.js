@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const users = require('../models/users');
 const upload = require('../config/fileupload');
-const { array } = require('../config/fileupload');
+const bcrypt = require('bcrypt');
 const Joi = require('@hapi/joi');
-
+const verifyToken = require('../privateRoute/verifyToken');
+const saltRounds = 10;
 const schema = Joi.object({
     firstName: Joi.string()
         .min(2)
@@ -24,9 +25,7 @@ const schema = Joi.object({
         .required(),
     role: Joi.string()
         .required(),
-    phoneNumber: Joi.string()
-        .min(10)
-        .max(14)
+    phoneNumber: Joi.number()
         .required(),
     gender: Joi.string()
         .required(),
@@ -44,9 +43,11 @@ const schema = Joi.object({
     state: Joi.string()
         .max(50)
         .required(),
+    zipcode: Joi.number().max(12)
 });
 
 router.get('/', async (req, res) => {
+    console.log(req.user)
     try {
         const user = await users.find();
         res.json(user);
@@ -67,14 +68,19 @@ router.get('/:id', async (req, res) => {
 });
 router.post('/create', upload.single('file'), async (req, res) => {
     // Let validate data before we make users
-    const validation = schema.validate(req.body);
+    const { error } = schema.validate(req.body);
+    const emailExist = await users.findOne({ email: req.body.email });
+    if (emailExist) return res.status(400).send('Email already exists');
+    //HashedPassword
+    const salt = await bcrypt.genSalt(saltRounds);
+    const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
     const userData = new users({
         firstName: req.body.firstName,
         lastName: req.body.lastName,
         email: req.body.email,
-        password: req.body.password,
-        confirmPassword: req.body.confirmPassword,
+        password: hashedPassword,
+        confirmPassword: hashedPassword,
         role: req.body.role,
         phoneNumber: req.body.phoneNumber,
         gender: req.body.gender,
@@ -86,7 +92,7 @@ router.post('/create', upload.single('file'), async (req, res) => {
         zipcode: req.body.zipcode,
         file: (req.file) ? req.file.path : null
     });
-    res.send(validation);
+    if (error) return res.status(400).send(error.details[0].message);
     //console.log(userData)
     try {
         const user = await userData.save();

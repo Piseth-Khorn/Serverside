@@ -18,6 +18,16 @@ router.get('/', async (req, res) => {
     }
 });
 
+router.get('/:id', async (req, res) => {
+    console.log(req.params.id)
+    try {
+        const getResult = await Role.findById({ _id: req.params.id });
+        res.json(getResult);
+    } catch (error) {
+        res.status(400).send(error);
+    }
+});
+
 router.post('/create', async (req, res) => {
 
 
@@ -43,6 +53,7 @@ router.put('/update/:id', async (req, res) => {
     res.send(validation);
     const readRole = await Role.findById({ _id: req.params.id });
     readRole.name = req.body.name;
+    readRole.updateDate = Date.now();
     try {
         const getRes = await readRole.save();
         res.json(getRes);
