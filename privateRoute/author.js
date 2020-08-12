@@ -13,7 +13,7 @@ router.post('/', async (req, res) => {
     if (!validPass) return res.status(400).send('Invalid password');
     // Create and assign token
     const token = jwt.sign({ _id: findUserEmail._id }, process.env.TOKEN_SECRET);
-    res.header('access_token', token).send({ token: token });
+    res.header('access_token', token).send(token);
 });
 
 
