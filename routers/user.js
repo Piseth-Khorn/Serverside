@@ -46,7 +46,7 @@ const schema = Joi.object({
     zipcode: Joi.number().max(12)
 });
 
-router.get('/', async (req, res) => {
+router.get('/', verifyToken, async (req, res) => {
     console.log(req.user)
     try {
         const user = await users.find();
