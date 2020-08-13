@@ -46,7 +46,7 @@ const schema = Joi.object({
     zipcode: Joi.number().max(12)
 });
 
-router.get('/', verifyToken, async (req, res) => {
+router.get('/',verifyToken, async (req, res) => {
     console.log(req.user)
     try {
         const user = await users.find();
@@ -56,7 +56,7 @@ router.get('/', verifyToken, async (req, res) => {
     }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id',verifyToken, async (req, res) => {
     const id = { _id: req.params.id }
     try {
         const user = await users.findById(id);
@@ -66,7 +66,7 @@ router.get('/:id', async (req, res) => {
         console.log(error);
     }
 });
-router.post('/create', upload.single('file'), async (req, res) => {
+router.post('/create',verifyToken, upload.single('file'), async (req, res) => {
     // Let validate data before we make users
     const { error } = schema.validate(req.body);
     const emailExist = await users.findOne({ email: req.body.email });
@@ -103,7 +103,9 @@ router.post('/create', upload.single('file'), async (req, res) => {
 
 });
 
-router.put('/update/:id', upload.single('file'), async (req, res) => {
+router.put('/update/:id',verifyToken, upload.single('file'), async (req, res) => {
+    const salt = await bcrypt.genSalt(saltRounds);
+    const hashedPassword=await bcrypt.hash(req.body.password,salt);
     const id = { _id: req.params.id }
     const readUser = await users.findById(id);
     readUser.firstName = req.body.firstName;
@@ -118,10 +120,14 @@ router.put('/update/:id', upload.single('file'), async (req, res) => {
     readUser.city = req.body.city;
     readUser.state = req.body.state;
     readUser.zipcode = req.body.zipcode;
-    if (req.body.password != readUser.password && req.body.confirmPassword != readUser.confirmPassword) {
-        readUser.password = req.body.password;
-        readUser.confirmPassword = req.body.confirmPassword;
+    if (req.body.password==null && req.body.confirmPassword==null) {
+        readUser.password =readUser.password;
+        readUser.confirmPassword = readUser.confirmPassword;
+    }else{
+        readUser.password =hashedPassword;
+        readUser.confirmPassword = hashedPassword;
     }
+    
     if (req.file) readUser.file = req.file.path;
     try {
         const getRes = await readUser.save();
@@ -134,7 +140,7 @@ router.put('/update/:id', upload.single('file'), async (req, res) => {
 
 });
 
-router.delete('/delete/:id', async (req, res) => {
+router.delete('/delete/:id',verifyToken, async (req, res) => {
     const id = { _id: req.params.id }
     try {
         const user = await users.deleteOne(id);
